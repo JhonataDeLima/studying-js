@@ -66,12 +66,13 @@ class BigMonster extends Character {
 
 // MONTANDO CENARIO DA LUTA
 class Stage {
-    // Recebendo lutadores e seus respectivos elementos DOM
-    constructor(fighter1, fighter2, fighter1El, fighter2El){
+    // Recebendo lutadores e seus respectivos elementos DOM + log
+    constructor(fighter1, fighter2, fighter1El, fighter2El, logObject){
         this.fighter1 = fighter1;
         this.fighter2 = fighter2;
         this.fighter1El = fighter1El;
         this.fighter2El = fighter2El;
+        this.log = logObject;
     }
 
     start() {
@@ -86,14 +87,14 @@ class Stage {
 
     update(){
         //fighter1
-        this.fighter1El.querySelector('.name').innerHTML = `${this.fighter1.name} - ${this.fighter1.life} HP`;
+        this.fighter1El.querySelector('.name').innerHTML = `${this.fighter1.name} - ${this.fighter1.life.toFixed(1)} HP`;
         //calculando % de vida do personagem
         let f1pct = (this.fighter1.life / this.fighter1.maxLife) * 100;
         //atualizar a barra de vida do fighter1
         this.fighter1El.querySelector('.bar').style.width = `${f1pct}%`
 
         //fighter2
-        this.fighter2El.querySelector('.name').innerHTML = `${this.fighter2.name} - ${this.fighter2.life} HP`;
+        this.fighter2El.querySelector('.name').innerHTML = `${this.fighter2.name} - ${this.fighter2.life.toFixed(1)} HP`;
         //calculando % de vida do fighter2
         let f2pct = (this.fighter2.life / this.fighter2.maxLife) * 100;
         //atualizano barra de vida do fighter2
@@ -101,7 +102,56 @@ class Stage {
     }
 
     doAttack(attacking, attacked) {
-        console.log(`${attacking.name} atacou ${attacked.name}`);
         
+        // Condição para verificar se o adversario ou o atacante está Morto
+        if(attacking.life <= 0 || attacked.life <= 0){
+            this.log.addMessage('Mortos nao podem atacar ou serem atacados.');
+            return
+        }
+        
+        // definindo multiplicador de dano e defesa
+        let attackFactor = (Math.random()*2).toFixed(2);
+        let defenseFactor = (Math.random()*2).toFixed(2);
+
+        // definindo valor final do attack e defesa
+        let actualAttack = attacking.attack * attackFactor;
+        let actualDefense = attacked.defense * defenseFactor;
+
+        // condição para causar dano ou defender ataque.
+        if(actualAttack > actualDefense){
+            attacked.life -= actualAttack;
+            this.log.addMessage(`${attacking.name} causou ${actualAttack} de dano ao ${attacked.name}.`);
+
+        }else{
+            this.log.addMessage(`${attacked.name} conseguiu defender...`);
+        }
+
+        this.update();   
+    }
+
+}
+
+
+class Log {
+    list = [];
+
+    // recebe o elemento DOM do log
+    constructor(listEl) {
+        this.listEl = listEl;
+    }
+
+    // adiciona um novo log na lista e dispara um render.
+    addMessage(msg) {
+        this.list.push(msg);
+        this.render();
+    }
+
+    // limpa o elemento e preenche novamente com os itens da lista
+    render() {
+        this.listEl.innerHTML = '';
+        
+        for (let i in this.list) {
+            this.listEl.innerHTML += `<li>${this.list[i]}</li>`;
+        }
     }
 }
